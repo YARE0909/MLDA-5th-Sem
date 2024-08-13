@@ -151,6 +151,11 @@ st.write(f"Mean Squared Error: {mse_noisy:.2f}")
 st.write(f"Root Mean Squared Error (RMSE): {rmse_noisy:.2f}")
 st.write(f"R^2 Score: {r2_noisy:.2f}")
 
+st.header("Linear Regression Performance (Clean Data)")
+st.write(f"Mean Squared Error: {mse_clean:.2f}")
+st.write(f"Root Mean Squared Error (RMSE): {rmse_clean:.2f}")
+st.write(f"R^2 Score: {r2_clean:.2f}")
+
 # Cross-validation on clean data
 st.header("Cross-Validation Performance (Clean Data)")
 cv_scores_clean = cross_val_score(model_clean, X_clean, y_clean, cv=5, scoring='neg_mean_squared_error')
