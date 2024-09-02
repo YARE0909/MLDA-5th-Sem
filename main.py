@@ -4,38 +4,38 @@ from sklearn.linear_model import LinearRegression, LogisticRegression
 from sklearn.model_selection import train_test_split, cross_val_score
 from sklearn.metrics import (mean_squared_error, r2_score, 
                              accuracy_score, precision_score, recall_score, f1_score, confusion_matrix)
-import streamlit as st
-from io import StringIO
 import numpy as np
+from io import StringIO
+from google.colab import files
 
-# Load the CSV file
-file_path = 'metadata.csv'  # Update this path to the location of your file if needed
-df = pd.read_csv(file_path)
+# Upload the CSV file
+uploaded = files.upload()
 
-st.title("Data Analysis and Linear Regression")
+# Assuming the uploaded file is 'metadata.csv'
+df = pd.read_csv(next(iter(uploaded.keys())))
 
 # Display the first few rows of the dataframe
-st.header("First Few Rows of the Dataframe")
-st.dataframe(df.head())
+print("First Few Rows of the Dataframe:")
+print(df.head())
 
 # Check the shape of the data
-st.header("Shape of the Dataframe")
-st.write(df.shape)
+print("\nShape of the Dataframe:")
+print(df.shape)
 
 # Get basic information about the data
-st.header("Basic Information about the Dataframe")
+print("\nBasic Information about the Dataframe:")
 buffer = StringIO()
 df.info(buf=buffer)
 info = buffer.getvalue()
-st.text(info)
+print(info)
 
 # Get summary statistics
-st.header("Summary Statistics of the Dataframe")
-st.write(df.describe())
+print("\nSummary Statistics of the Dataframe:")
+print(df.describe())
 
 # Display the column names
-st.header("Column Names of the Dataframe")
-st.write(df.columns.tolist())
+print("\nColumn Names of the Dataframe:")
+print(df.columns.tolist())
 
 # Convert 'issued' column to datetime format and extract the year
 df['issued'] = pd.to_datetime(df['issued'], errors='coerce').dt.year
@@ -44,16 +44,16 @@ df['issued'] = pd.to_datetime(df['issued'], errors='coerce').dt.year
 df = df.dropna(subset=['issued'])
 
 # Plot the distribution of the 'issued' column
-st.header("Distribution of Articles by Year")
+print("\nDistribution of Articles by Year:")
 plt.figure()
 plt.hist(df['issued'], bins=30)
 plt.xlabel('Year')
 plt.ylabel('Number of Articles')
 plt.title(f'Distribution of Articles by Year')
-st.pyplot(plt)
+plt.show()
 
 # Plot the distribution of the 'references-count' column
-st.header("Distribution of References-Count with Potential Outliers")
+print("\nDistribution of References-Count with Potential Outliers:")
 plt.figure(figsize=(10, 6))
 plt.hist(df['references-count'], bins=100, edgecolor='k', alpha=0.7)
 plt.xlabel('References-Count')
@@ -72,11 +72,11 @@ outliers = df[(df['references-count'] < lower_bound) | (df['references-count'] >
 # Highlight outliers on the histogram
 plt.scatter(outliers['references-count'], [0] * len(outliers), color='red', label='Outliers')
 plt.legend()
-st.pyplot(plt)
+plt.show()
 
-st.write(f"Number of outliers in 'references-count': {len(outliers)}")
-st.write("Outliers:")
-st.dataframe(outliers)
+print(f"Number of outliers in 'references-count': {len(outliers)}")
+print("Outliers:")
+print(outliers)
 
 # Drop the outliers for linear regression
 df_clean = df[(df['references-count'] >= lower_bound) & (df['references-count'] <= upper_bound)]
@@ -99,7 +99,7 @@ rmse_clean = np.sqrt(mse_clean)
 r2_clean = r2_score(y_test_clean, y_pred_clean)
 
 # Plot the regression line for clean data
-st.header("Linear Regression: Year vs. References Count (Clean Data)")
+print("\nLinear Regression: Year vs. References Count (Clean Data)")
 plt.figure(figsize=(10, 6))
 plt.scatter(X_test_clean, y_test_clean, color='blue', label='Actual')
 plt.plot(X_test_clean, y_pred_clean, color='red', linewidth=2, label='Predicted')
@@ -107,12 +107,12 @@ plt.xlabel('Year of Publication')
 plt.ylabel('References Count')
 plt.title('Linear Regression: Year vs. References Count (Clean Data)')
 plt.legend()
-st.pyplot(plt)
+plt.show()
 
-st.header("Linear Regression Performance (Clean Data)")
-st.write(f"Mean Squared Error: {mse_clean:.2f}")
-st.write(f"Root Mean Squared Error (RMSE): {rmse_clean:.2f}")
-st.write(f"R^2 Score: {r2_clean:.2f}")
+print("\nLinear Regression Performance (Clean Data)")
+print(f"Mean Squared Error: {mse_clean:.2f}")
+print(f"Root Mean Squared Error (RMSE): {rmse_clean:.2f}")
+print(f"R^2 Score: {r2_clean:.2f}")
 
 # Add noise to the data
 np.random.seed(42)
@@ -137,7 +137,7 @@ rmse_noisy = np.sqrt(mse_noisy)
 r2_noisy = r2_score(y_test_noisy, y_pred_noisy)
 
 # Plot the regression line for noisy data
-st.header("Linear Regression: Year vs. References Count (Noisy Data)")
+print("\nLinear Regression: Year vs. References Count (Noisy Data)")
 plt.figure(figsize=(10, 6))
 plt.scatter(X_test_noisy, y_test_noisy, color='green', label='Actual')
 plt.plot(X_test_noisy, y_pred_noisy, color='orange', linewidth=2, label='Predicted')
@@ -145,30 +145,31 @@ plt.xlabel('Year of Publication')
 plt.ylabel('References Count')
 plt.title('Linear Regression: Year vs. References Count (Noisy Data)')
 plt.legend()
-st.pyplot(plt)
+plt.show()
 
-st.header("Linear Regression Performance (Noisy Data)")
-st.write(f"Mean Squared Error: {mse_noisy:.2f}")
-st.write(f"Root Mean Squared Error (RMSE): {rmse_noisy:.2f}")
-st.write(f"R^2 Score: {r2_noisy:.2f}")
+print("\nLinear Regression Performance (Noisy Data)")
+print(f"Mean Squared Error: {mse_noisy:.2f}")
+print(f"Root Mean Squared Error (RMSE): {rmse_noisy:.2f}")
+print(f"R^2 Score: {r2_noisy:.2f}")
 
 # Cross-validation on clean data
-st.header("Cross-Validation Performance (Clean Data)")
+print("\nCross-Validation Performance (Clean Data)")
 cv_scores_clean = cross_val_score(model_clean, X_clean, y_clean, cv=5, scoring='neg_mean_squared_error')
 mean_cv_score_clean = -cv_scores_clean.mean()
-st.write(f"Mean Cross-Validated Mean Squared Error: {mean_cv_score_clean:.2f}")
+print(f"Mean Cross-Validated Mean Squared Error: {mean_cv_score_clean:.2f}")
 
 # Cross-validation on noisy data
-st.header("Cross-Validation Performance (Noisy Data)")
+print("\nCross-Validation Performance (Noisy Data)")
 cv_scores_noisy = cross_val_score(model_noisy, X_noisy, y_noisy, cv=5, scoring='neg_mean_squared_error')
 mean_cv_score_noisy = -cv_scores_noisy.mean()
-st.write(f"Mean Cross-Validated Mean Squared Error: {mean_cv_score_noisy:.2f}")
+print(f"Mean Cross-Validated Mean Squared Error: {mean_cv_score_noisy:.2f}")
 
 # Apply logistic regression
-st.header("Logistic Regression: Binary Classification of References Count")
+print("\nLogistic Regression: Binary Classification of References Count")
 
 # Create a binary target variable based on a threshold
 threshold = df_clean['references-count'].median()
+df_clean = df_clean.copy()  # Create a deep copy to avoid the SettingWithCopyWarning
 df_clean.loc[:, 'references_class'] = (df_clean['references-count'] > threshold).astype(int)
 
 # Define features and target for logistic regression
@@ -191,55 +192,16 @@ precision_logistic = precision_score(y_test_logistic, y_pred_logistic, zero_divi
 recall_logistic = recall_score(y_test_logistic, y_pred_logistic)
 f1_logistic = f1_score(y_test_logistic, y_pred_logistic)
 
-st.header("Logistic Regression Performance")
-st.write(f"Accuracy: {accuracy_logistic:.2f}")
-st.write(f"Precision: {precision_logistic:.2f}")
-st.write(f"Recall: {recall_logistic:.2f}")
-st.write(f"F1 Score: {f1_logistic:.2f}")
+print("\nLogistic Regression Performance")
+print(f"Accuracy: {accuracy_logistic:.2f}")
+print(f"Precision: {precision_logistic:.2f}")
+print(f"Recall: {recall_logistic:.2f}")
+print(f"F1 Score: {f1_logistic:.2f}")
 
-# Confusion matrix
-conf_matrix = confusion_matrix(y_test_logistic, y_pred_logistic)
-
-st.write("Confusion Matrix:")
-st.write(conf_matrix)
-
-# Plotting the confusion matrix
-plt.figure(figsize=(6, 4))
-plt.imshow(conf_matrix, interpolation='nearest', cmap=plt.cm.Blues)
-plt.title('Confusion Matrix')
-plt.colorbar()
-tick_marks = np.arange(2)
-plt.xticks(tick_marks, ['Below Threshold', 'Above Threshold'])
-plt.yticks(tick_marks, ['Below Threshold', 'Above Threshold'])
-plt.xlabel('Predicted Label')
-plt.ylabel('True Label')
-for i in range(conf_matrix.shape[0]):
-    for j in range(conf_matrix.shape[1]):
-        plt.text(j, i, format(conf_matrix[i, j], 'd'),
-                 horizontalalignment="center",
-                 color="white" if conf_matrix[i, j] > conf_matrix.max() / 2 else "black")
-st.pyplot(plt)
-
-# Plotting Actual vs Predicted Classes
-st.header("Logistic Regression: Actual vs Predicted Classes")
-plt.figure(figsize=(10, 6))
-plt.scatter(X_test_logistic, y_test_logistic, color='green', label='Actual Class')
-plt.scatter(X_test_logistic, y_pred_logistic, color='red', marker='x', label='Predicted Class')
-plt.xlabel('Year of Publication')
-plt.ylabel('Class (0: Below Threshold, 1: Above Threshold)')
-plt.title('Logistic Regression: Actual vs Predicted Classes')
-plt.legend()
-st.pyplot(plt)
-
-# Decision boundary
-st.header("Decision Boundary")
-
-# Predict the probability for the test set
+# Plotting the logistic regression results
 probabilities_test = logistic_model.predict_proba(X_test_logistic)[:, 1]
-
-# Calculate decision boundary based on model coefficients
 decision_boundary = -logistic_model.intercept_[0] / logistic_model.coef_[0][0]
-x_vals = np.array(plt.gca().get_xlim())
+x_vals = np.linspace(X_test_logistic.min(), X_test_logistic.max(), 100)
 y_vals = -(x_vals * logistic_model.coef_[0][0] + logistic_model.intercept_[0]) / logistic_model.coef_[0][0]
 
 plt.figure(figsize=(10, 6))
@@ -249,4 +211,20 @@ plt.xlabel('Year of Publication')
 plt.ylabel('Predicted Probability')
 plt.title('Logistic Regression: Decision Boundary')
 plt.legend()
-st.pyplot(plt)
+plt.colorbar(label='Predicted Probability')
+plt.show()
+
+# Confusion matrix
+conf_matrix = confusion_matrix(y_test_logistic, y_pred_logistic)
+
+print("\nConfusion Matrix:")
+print(conf_matrix)
+
+# Visualize the confusion matrix
+plt.figure(figsize=(6, 4))
+plt.matshow(conf_matrix, cmap='Blues', fignum=1)
+plt.title('Confusion Matrix')
+plt.colorbar()
+plt.xlabel('Predicted')
+plt.ylabel('Actual')
+plt.show()
